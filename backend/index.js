@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRoutes from './routes/user.route.js';
+import auhtRoutes from './routes/auth.route.js';
 
 // Configuring dotenv to use the .env file
 dotenv.config();
@@ -16,9 +17,11 @@ mongoose
     });
 
 const app = express();
+app.use(express.json());
 
 //Routes
 app.use('/api/users', userRoutes);
+app.use('/api/auth', auhtRoutes);
 
 
 
