@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { errorHandler } = require("../utils/error");
 const { registerValidator } = require("../validations/auth");
 
@@ -14,19 +15,19 @@ const signup = async (req, res, next) => {
     for (const detail of errorDetails) {
       if (detail.path[0] === "username") {
         return res.status(422).json({
-          error: "ValidationError",
+          error: "Validation Error",
           field: "username",
           message: "Tên người dùng không hợp lệ.", // Thông báo tùy chỉnh
         });
       } else if (detail.path[0] === "password") {
         return res.status(422).json({
-          error: "ValidationError",
+          error: "Validation Error",
           field: "password",
           message: "Mật khẩu không hợp lệ.", // Thông báo tùy chỉnh
         });
       } else if (detail.path[0] === "email") {
         return res.status(422).json({
-          error: "ValidationError",
+          error: "Validation Error",
           field: "email",
           message: "Email không hợp lệ.", // Thông báo tùy chỉnh
         });
@@ -65,4 +66,25 @@ const signup = async (req, res, next) => {
   }
 };
 
-module.exports = { signup };
+const signin = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    const validUser = await User.findOne({ email });
+    if (!validUser) return next(errorHandler(404, "User not found"));
+    const validPassword = await bcrypt.compareSync(
+      password,
+      validUser.password
+    );
+    if (!validPassword) return next(errorHandler(401, "wrong credentials"));
+    const token = jwt.sign({ _id: validUser._id }, process.env.SECRET_KEY);
+    let expiryDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    res
+      .cookie("access_token", token, { httpOnly: true, expires: expiryDate })
+      .status(200)
+      .json({ message: "login success" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { signup, signin };
