@@ -77,11 +77,12 @@ const signin = async (req, res, next) => {
     );
     if (!validPassword) return next(errorHandler(401, "wrong credentials"));
     const token = jwt.sign({ _id: validUser._id }, process.env.SECRET_KEY);
+    const {password: hashedPassword, ...user} = validUser._doc;
     let expiryDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
     res
       .cookie("access_token", token, { httpOnly: true, expires: expiryDate })
       .status(200)
-      .json({ message: "login success" });
+      .json({ message: "login success", user } );
   } catch (error) {
     next(error);
   }
