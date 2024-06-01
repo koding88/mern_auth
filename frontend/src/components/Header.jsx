@@ -22,11 +22,11 @@ export default function Header() {
                             <img
                                 src={currentUser.profilePicture}
                                 alt="profile-picture"
-                                className="w-8 h-8 rounded-full object-cover"
+                                className="w-7 h-7 rounded-full object-cover"
                             />
                         ) : (
-                            <Link to="/">
-                                <li>Sign Up</li>
+                            <Link to="/sign-in">
+                                <li>Sign In</li>
                             </Link>
                         )}
                     </Link>
