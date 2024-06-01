@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import {
     getDownloadURL,
@@ -18,30 +18,35 @@ export default function Profile() {
     const { currentUser } = useSelector((state) => state.user);
 
     useEffect(() => {
+        const handleFileUpload = async (image) => {
+            const store = getStorage(app);
+            const fileName = new Date().getTime() + "-" + image.name;
+            const storageRef = ref(store, fileName);
+            const uploadTask = uploadBytesResumable(storageRef, image);
+            uploadTask.on(
+                "state_changed",
+                (snapshot) => {
+                    const progress =
+                        (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setImagePercent(Math.round(progress));
+                },
+                (error) => setImageError(true),
+                () =>
+                    getDownloadURL(uploadTask.snapshot.ref).then(
+                        (donwload_url) => {
+                            setFormData({
+                                ...formData,
+                                profilePicture: donwload_url,
+                            });
+                        }
+                    )
+            );
+        };
+
         if (image) {
             handleFileUpload(image);
         }
     }, [image]);
-
-    const handleFileUpload = async (image) => {
-        const store = getStorage(app);
-        const fileName = new Date().getTime() + "-" + image.name;
-        const storageRef = ref(store, fileName);
-        const uploadTask = uploadBytesResumable(storageRef, image);
-        uploadTask.on(
-            "state_changed",
-            (snapshot) => {
-                const progress =
-                    (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setImagePercent(Math.round(progress));
-            },
-            (error) => setImageError(true),
-            () =>
-                getDownloadURL(uploadTask.snapshot.ref).then((donwload_url) => {
-                    setFormData({ ...formData, profilePicture: donwload_url });
-                })
-        );
-    };
 
     return (
         <div className="p-3 max-w-lg mx-auto">
